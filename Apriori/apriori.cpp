@@ -164,18 +164,12 @@ public:
 							ss << complex[itemi];
 							itemstrs += ss.str() + " ";
 						}
-						cout << itemstrs << endl;
 						itemset[itemstrs] = 0;
 					}
 				}
 			}
 		}
-		getchar();
-		/*map<string, int >::iterator dsa;
-		for (dsa = itemset.begin(); dsa != itemset.end(); dsa++)
-		{
-			cout << "first" << dsa->first << "  " << dsa->second << endl;
-		}*/
+		cout << "itemset creat finish" << endl;
 
 		map<int, vector<int>>::iterator it_item;
 		for (it_item = item.begin(); it_item != item.end(); it_item++){
@@ -189,9 +183,10 @@ public:
 			}
 			else{
 				full(itemarray, creatarray, i, k, k, &itemset);
-				cout << it_item->first << endl;
 			}
 		}
+		cout << "reading file finish" << endl;
+
 		map<string, int>::iterator it_cut;
 		for (it_cut = itemset.begin(); it_cut != itemset.end();){
 			if (it_cut->second < min_2){
@@ -201,6 +196,7 @@ public:
 				it_cut++;
 			}
 		}
+		cout << "cut finish" << endl;
 		return itemset;
 	}
 	
@@ -260,9 +256,9 @@ public:
 			}
 			else{
 				it_L++;
-				cout << it_L->first<<endl;
 			}
 		}
+		cout << "first finish" << endl;
 		return firstitem;
 	}
 
@@ -286,18 +282,44 @@ public:
 			}
 			k++;
 		}
+		cout << "file read finish" << endl;
 	}
 };
+void SQL(map<string, int> L,int k){
+	char tablename[30];
+	sprintf(tablename, "%s%d","table",k);
+	CADOConn cadoconn;
+	cadoconn.OnInitADOConn();
+	_bstr_t insert = "insert into %s(num,count) values('%s',%d);";
+	_bstr_t creat = "CREATE TABLE `%s` (`Id` int(11) NOT NULL AUTO_INCREMENT,`num` varchar(100) DEFAULT NULL,`count` int(11) DEFAULT NULL,PRIMARY KEY(`Id`)) ENGINE = InnoDB AUTO_INCREMENT = 0 DEFAULT CHARSET = latin1; ";
+	char Creat[500];
+	sprintf(Creat, creat, tablename);
+	cadoconn.ExecuteSQL(Creat);
+	map<string, int>::iterator it;
+	for (it = L.begin(); it != L.end(); it++){
+		char Insert[200];
+		char *first = const_cast<char*>(it->first.c_str());
+		sprintf(Insert, insert, tablename, first, it->second);
+		cadoconn.ExecuteSQL(Insert);
+	}
+
+}
 void main(){
 	apriori a;
 	a.FileReader("D:\\retail.dat");
-	cout << "finish";
 	map <string, int > L = a.first();
-	map <string, int > LL = a.CreatItem(2, L);
-	map <string, int > LLL = a.CreatItem(3, LL);
-	map <string,int >::iterator it;
-	for (it = LLL.begin(); it != LLL.end(); it++){
-		cout << "key:" << it->first<<" ";
-		cout << it->second << endl;
+	int k = 2;
+	while (1){
+		L = a.CreatItem(k++, L);
+		cout << "k=" << k-1 << endl;
+		map <string, int >::iterator it;
+		for (it = L.begin(); it != L.end(); it++){
+			cout << "key:" << it->first << " ";
+			cout << it->second << endl;
+		}
+		SQL(L, k-1);
+		getchar();
 	}
 }
+
+
